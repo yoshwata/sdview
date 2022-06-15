@@ -20,10 +20,26 @@ const exec = async () => {
     const r = await axios.get(`/v4/auth/token?api_token=${config.usertoken}`)
     console.log(r.data);
     const jwt = r.data.token;
+
+    const b = await axios.get(
+      `/v4/builds/78209094`,
+      {
+        headers: {
+          "accept": "application/json",
+          "Authorization": jwt
+        }
+      }
+    );
+
+    console.log(b);
+
+
   } catch (error) {
     console.log(error);
   }
 
+  // apiでrunnningビルドを全部取るみたいなことはできないっすね
+  // いいのじゃ、kubectlでとるから
   // .then(function (response) {
   //   // handle success
   //   console.log(response);
