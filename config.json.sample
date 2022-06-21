@@ -1,0 +1,4 @@
+{
+	"usertoken": "YOURSDUSERTOKEN",
+	"baseURL": "https://api-cd.screwdriver.YOUR.SDAPI.DOMAIN"
+}
