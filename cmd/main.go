@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"regexp"
 
-	kubeimage "github.com/chenjiandongx/kubectl-images"
 	"github.com/spf13/cobra"
+	kubeimage "github.com/yoshwata/sdview"
 )
 
 const version = "0.3.7"
