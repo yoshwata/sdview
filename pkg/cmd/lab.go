@@ -17,15 +17,17 @@ limitations under the License.
 package cmd
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/cli-runtime/pkg/printers"
 	"k8s.io/cli-runtime/pkg/resource"
 
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+
+	"github.com/yalp/jsonpath"
 )
 
 var (
@@ -128,21 +130,32 @@ func (o *LabOptions) Run() error {
 		return err
 	}
 
-	p := printers.NewTablePrinter(printers.PrintOptions{
-		NoHeaders:        false,
-		WithNamespace:    true,
-		WithKind:         true,
-		Wide:             true,
-		ShowLabels:       true,
-		Kind:             schema.GroupKind{},
-		ColumnLabels:     nil,
-		SortBy:           "",
-		AllowMissingKeys: false,
-	})
+	// p := printers.NewTablePrinter(printers.PrintOptions{
+	// 	NoHeaders:        false,
+	// 	WithNamespace:    true,
+	// 	WithKind:         true,
+	// 	Wide:             true,
+	// 	ShowLabels:       true,
+	// 	Kind:             schema.GroupKind{},
+	// 	ColumnLabels:     nil,
+	// 	SortBy:           "",
+	// 	AllowMissingKeys: false,
+	// })
 	w := printers.GetNewTabWriter(o.Out)
 
 	if err := r.Visit(func(info *resource.Info, e error) error {
-		return p.PrintObj(info.Object, w)
+		// fmt.Printf("%v", info.Object)
+		strPod, _ := json.Marshal(info.Object)
+		bytePod := []byte(strPod)
+
+		// fmt.Printf("%s\n", strPod)
+
+		var unMarshaledPod interface{}
+		json.Unmarshal(bytePod, &unMarshaledPod)
+		pathedPod, _ := jsonpath.Read(unMarshaledPod, "$.metadata.name")
+		fmt.Println(pathedPod)
+		return e
+		// return p.PrintObj(info.Object, w)
 	}); err != nil {
 		return err
 	}
