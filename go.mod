@@ -3,6 +3,10 @@ module github.com/micnncim/kubectl-lab
 go 1.13
 
 require (
+	github.com/dustin/go-humanize v1.0.0 // indirect
+	github.com/kataras/tablewriter v0.0.0-20180708051242-e063d29b7c23 // indirect
+	github.com/lensesio/tableprinter v0.0.0-20201125135848-89e81fc956e7
+	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5
 	github.com/yalp/jsonpath v0.0.0-20180802001716-5cc68e5049a0

@@ -20,13 +20,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/cli-runtime/pkg/printers"
 	"k8s.io/cli-runtime/pkg/resource"
 
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 
+	"github.com/lensesio/tableprinter"
 	"github.com/yalp/jsonpath"
 )
 
@@ -130,17 +133,17 @@ func (o *LabOptions) Run() error {
 		return err
 	}
 
-	// p := printers.NewTablePrinter(printers.PrintOptions{
-	// 	NoHeaders:        false,
-	// 	WithNamespace:    true,
-	// 	WithKind:         true,
-	// 	Wide:             true,
-	// 	ShowLabels:       true,
-	// 	Kind:             schema.GroupKind{},
-	// 	ColumnLabels:     nil,
-	// 	SortBy:           "",
-	// 	AllowMissingKeys: false,
-	// })
+	p := printers.NewTablePrinter(printers.PrintOptions{
+		NoHeaders:        false,
+		WithNamespace:    true,
+		WithKind:         true,
+		Wide:             true,
+		ShowLabels:       true,
+		Kind:             schema.GroupKind{},
+		ColumnLabels:     nil,
+		SortBy:           "",
+		AllowMissingKeys: false,
+	})
 	w := printers.GetNewTabWriter(o.Out)
 
 	if err := r.Visit(func(info *resource.Info, e error) error {
@@ -153,8 +156,42 @@ func (o *LabOptions) Run() error {
 		var unMarshaledPod interface{}
 		json.Unmarshal(bytePod, &unMarshaledPod)
 		pathedPod, _ := jsonpath.Read(unMarshaledPod, "$.metadata.name")
-		fmt.Println(pathedPod)
+		_ = pathedPod
+		// fmt.Println(pathedPod)
+		// return e
+
+		type person struct {
+			Firstname string `header:"first name"`
+			Lastname  string `header:"last name"`
+		}
+		printer := tableprinter.New(os.Stdout)
+		persons := []person{
+			{"Chris", "Doukas"},
+			{"Georgios", "Callas"},
+			{"Ioannis", "Christou"},
+			{"Nikolaos", "Doukas"},
+			{"Dimitrios", "Dellis"},
+		}
+
+		many := map[string][]string{
+			"podname": {
+				"12345-abc",
+				"11111-fioxo",
+			},
+			"repository": {
+				"sd/api",
+				"sd/ui",
+			},
+		}
+
+		printer.Print(many)
+
+		_ = p
+		_ = persons
+		// printer.Print(persons)
+
 		return e
+
 		// return p.PrintObj(info.Object, w)
 	}); err != nil {
 		return err
