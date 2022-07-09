@@ -30,6 +30,7 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 
 	"github.com/lensesio/tableprinter"
+	"github.com/spf13/viper"
 	"github.com/yalp/jsonpath"
 )
 
@@ -160,6 +161,14 @@ func (o *LabOptions) Run() error {
 		repository := "myorg/myrepo"
 
 		many["podname"] = append(many["podname"], pathedPod.(string))
+
+		viper.SetConfigName("config")
+		viper.SetConfigType("yaml")
+		viper.AddConfigPath(".")
+		viper.ReadInConfig()
+		usertoken := viper.Get("usertoken").(string)
+		fmt.Println(usertoken)
+
 		many["repository"] = append(many["repository"], repository)
 
 		_ = p
