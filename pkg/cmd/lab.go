@@ -32,6 +32,8 @@ import (
 	"github.com/lensesio/tableprinter"
 	"github.com/spf13/viper"
 	"github.com/yalp/jsonpath"
+
+	"github.com/yoshwata/sdview/pkg/screwdriver"
 )
 
 var (
@@ -176,6 +178,10 @@ func (o *LabOptions) Run() error {
 
 		many["podname"] = append(many["podname"], pathedPod.(string))
 		many["buildId"] = append(many["buildId"], buildId.(string))
+
+		sd := screwdriver.New(usertoken, sdapi)
+
+		_ = sd
 
 		many["repository"] = append(many["repository"], repository)
 
