@@ -149,25 +149,33 @@ func (o *LabOptions) Run() error {
 
 	many := map[string][]string{}
 
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(".")
+	viper.ReadInConfig()
+	usertoken := viper.Get("usertoken").(string)
+	sdapi := viper.Get("sdapi").(string)
+	fmt.Println(usertoken)
+	fmt.Println(sdapi)
+
 	if err := r.Visit(func(info *resource.Info, e error) error {
 		strPod, _ := json.Marshal(info.Object)
 		bytePod := []byte(strPod)
 
 		var unMarshaledPod interface{}
 		json.Unmarshal(bytePod, &unMarshaledPod)
+
+		buildId, _ := jsonpath.Read(unMarshaledPod, "$.metadata.labels.sdbuild")
+		if buildId == nil {
+			return nil
+		}
 		pathedPod, _ := jsonpath.Read(unMarshaledPod, "$.metadata.name")
 		_ = pathedPod
 
 		repository := "myorg/myrepo"
 
 		many["podname"] = append(many["podname"], pathedPod.(string))
-
-		viper.SetConfigName("config")
-		viper.SetConfigType("yaml")
-		viper.AddConfigPath(".")
-		viper.ReadInConfig()
-		usertoken := viper.Get("usertoken").(string)
-		fmt.Println(usertoken)
+		many["buildId"] = append(many["buildId"], buildId.(string))
 
 		many["repository"] = append(many["repository"], repository)
 
