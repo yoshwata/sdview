@@ -149,58 +149,22 @@ func (o *LabOptions) Run() error {
 	many := map[string][]string{}
 
 	if err := r.Visit(func(info *resource.Info, e error) error {
-		// fmt.Printf("%v", info.Object)
 		strPod, _ := json.Marshal(info.Object)
 		bytePod := []byte(strPod)
-
-		// fmt.Printf("%s\n", strPod)
 
 		var unMarshaledPod interface{}
 		json.Unmarshal(bytePod, &unMarshaledPod)
 		pathedPod, _ := jsonpath.Read(unMarshaledPod, "$.metadata.name")
 		_ = pathedPod
-		fmt.Println(pathedPod)
-		// return e
-
-		type person struct {
-			Firstname string `header:"first name"`
-			Lastname  string `header:"last name"`
-		}
-
-		persons := []person{
-			{"Chris", "Doukas"},
-			{"Georgios", "Callas"},
-			{"Ioannis", "Christou"},
-			{"Nikolaos", "Doukas"},
-			{"Dimitrios", "Dellis"},
-		}
 
 		repository := "myorg/myrepo"
 
 		many["podname"] = append(many["podname"], pathedPod.(string))
 		many["repository"] = append(many["repository"], repository)
 
-		// many := map[string][]string{
-		// 	"podname": {
-		// 		"12345-abc",
-		// 		"11111-fioxo",
-		// 	},
-		// 	"repository": {
-		// 		"sd/api",
-		// 		"sd/ui",
-		// 	},
-		// }
-
-		// printer.Print(many)
-
-		// _ = printer
 		_ = p
-		_ = persons
-		// printer.Print(persons)
 
 		return e
-
-		// return p.PrintObj(info.Object, w)
 	}); err != nil {
 		return err
 	}
