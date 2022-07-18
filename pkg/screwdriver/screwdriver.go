@@ -122,7 +122,7 @@ func (sd *SD) Build(id string) (interface{}, error) {
 	json.Unmarshal(body, &response)
 
 	fmt.Println("=================")
-	fmt.Printf("%#v\n", response)
+	// fmt.Printf("%#v\n", response)
 
 	// pathedBi, _ := jsonpath.Read(response, "$.buildClusterName")
 	// fmt.Printf("%s\n", pathedBi)

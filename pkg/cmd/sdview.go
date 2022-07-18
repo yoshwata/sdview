@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -52,6 +53,8 @@ type LabOptions struct {
 	Namespace string
 
 	genericclioptions.IOStreams
+
+	output string
 }
 
 // NewLabOptions provides an instance of LabOptions with default values
@@ -89,6 +92,10 @@ func NewCmdLab(streams genericclioptions.IOStreams) *cobra.Command {
 
 	o.configFlags.AddFlags(cmd.Flags())
 
+	var echoTimes = 1
+	cmd.Flags().IntVarP(&echoTimes, "times", "t", 1, "times to echo the input")
+	cmd.Flags().StringVarP(&o.output, "output", "o", "default", "hoge")
+
 	return cmd
 }
 
@@ -120,9 +127,52 @@ func (o *LabOptions) Validate() error {
 	return nil
 }
 
+var columnsFormats = map[string]bool{
+	"custom-columns-file": true,
+	"custom-columns":      true,
+}
+
+type Column struct {
+	// The header to print above the column, general style is ALL_CAPS
+	Header string
+	// The pointer to the field in the object to print in JSONPath form
+	// e.g. {.ObjectMeta.Name}, see pkg/util/jsonpath for more details.
+	FieldSpec string
+}
+
 // Run lists all available namespaces on a user's KUBECONFIG or updates the
 // current context based on a provided namespace.
 func (o *LabOptions) Run() error {
+	fmt.Println(o.output)
+
+	templateValue := ""
+	templateFormat := ""
+	for format := range columnsFormats {
+		format = format + "="
+		if strings.HasPrefix(o.output, format) {
+			templateValue = o.output[len(format):]
+			templateFormat = format[:len(format)-1]
+			break
+		}
+	}
+
+	fmt.Println(templateValue)
+	fmt.Println(templateFormat)
+
+	parts := strings.Split(templateValue, ",")
+	columns := make([]Column, len(parts))
+
+	for ix := range parts {
+		colSpec := strings.SplitN(parts[ix], ":", 2)
+		if len(colSpec) != 2 {
+			return fmt.Errorf("unexpected custom-columns spec: %s, expected <header>:<json-path-expr>", parts[ix])
+		}
+
+		columns[ix] = Column{Header: colSpec[0], FieldSpec: colSpec[1]}
+	}
+
+	fmt.Printf("%#v", columns)
+
 	r := resource.
 		NewBuilder(o.configFlags).
 		Unstructured().
@@ -173,13 +223,17 @@ func (o *LabOptions) Run() error {
 		if buildId == nil {
 			return nil
 		}
-		pathedPod, _ := jsonpath.Read(unMarshaledPod, "$.metadata.name")
-		_ = pathedPod
 
-		// repository := "myorg/myrepo"
+		var pathedPod interface{}
+		for i := range columns {
+			fmt.Println(columns[i].FieldSpec)
+			pathedPod, _ = jsonpath.Read(unMarshaledPod, "$.metadata.name")
+			_ = pathedPod
+			many[columns[i].Header] = append(many[columns[i].Header], pathedPod.(string))
+		}
 
-		many["podname"] = append(many["podname"], pathedPod.(string))
 		many["buildId"] = append(many["buildId"], buildId.(string))
+		// repository := "myorg/myrepo"
 
 		sdBuild, err := sd.Build(buildId.(string))
 		if err != nil {
