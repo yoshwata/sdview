@@ -227,7 +227,7 @@ func (o *LabOptions) Run() error {
 		var pathedPod interface{}
 		for i := range columns {
 			fmt.Println(columns[i].FieldSpec)
-			pathedPod, _ = jsonpath.Read(unMarshaledPod, "$.metadata.name")
+			pathedPod, _ = jsonpath.Read(unMarshaledPod, columns[i].FieldSpec)
 			_ = pathedPod
 			many[columns[i].Header] = append(many[columns[i].Header], pathedPod.(string))
 		}
