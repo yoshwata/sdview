@@ -150,22 +150,28 @@ func (sd *SD) makeURL(endpoint string) *url.URL {
 	return u
 }
 
-func (sd *SD) Job(jobId int) *Job {
+func (sd *SD) Job(jobId string) (interface{}, error) {
 	apiUrl := sd.makeURL(jobsEndpoint)
-	apiUrl.Path = path.Join(apiUrl.Path, strconv.Itoa(jobId))
+	apiUrl.Path = path.Join(apiUrl.Path, jobId)
 	res, err := sd.request(http.MethodGet, apiUrl.String(), nil, true)
 	if err != nil {
 		logrus.Error(err)
 	}
 
 	defer res.Body.Close()
-	job := new(Job)
-	err = json.NewDecoder(res.Body).Decode(job)
-	if err != nil {
-		logrus.Error(err)
-	}
 
-	return job
+	body, _ := io.ReadAll(res.Body)
+	var response interface{}
+
+	json.Unmarshal(body, &response)
+
+	// job := new(Job)
+	// err = json.NewDecoder(res.Body).Decode(job)
+	// if err != nil {
+	// 	logrus.Error(err)
+	// }
+
+	return response, nil
 }
 
 func (sd *SD) Pipeline(pipelineId int) *Pipeline {
