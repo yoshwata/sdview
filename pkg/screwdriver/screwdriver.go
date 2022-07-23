@@ -174,6 +174,24 @@ func (sd *SD) Job(jobId string) (interface{}, error) {
 	return response, nil
 }
 
+func (sd *SD) Events(eventId string) (interface{}, error) {
+	apiUrl := sd.makeURL("events")
+	apiUrl.Path = path.Join(apiUrl.Path, eventId)
+	res, err := sd.request(http.MethodGet, apiUrl.String(), nil, true)
+	if err != nil {
+		logrus.Error(err)
+	}
+
+	defer res.Body.Close()
+
+	body, _ := io.ReadAll(res.Body)
+	var response interface{}
+
+	json.Unmarshal(body, &response)
+
+	return response, nil
+}
+
 func (sd *SD) Pipeline(pipelineId int) *Pipeline {
 	apiUrl := sd.makeURL(pipelinesEndpoint)
 	apiUrl.Path = path.Join(apiUrl.Path, strconv.Itoa(pipelineId))

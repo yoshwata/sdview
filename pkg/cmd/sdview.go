@@ -102,6 +102,7 @@ func NewCmdLab(streams genericclioptions.IOStreams) *cobra.Command {
 	cmd.Flags().StringVarP(&o.output, "output", "o", "default", "hoge")
 	cmd.Flags().StringVarP(&o.sdBuildPath, "sdbuildPath", "b", "default", "hoge")
 	cmd.Flags().StringVarP(&o.sdJobPath, "sdJobPath", "j", "default", "hoge")
+	cmd.Flags().StringVarP(&o.sdEventPath, "sdEventPath", "e", "default", "hoge")
 
 	return cmd
 }
@@ -196,6 +197,9 @@ func (o *LabOptions) Run() error {
 	fmt.Printf("%#v\n", buildColumns)
 
 	// event columns
+	eventColumns, err := makeColumns(o.sdEventPath)
+	fmt.Println("EventColumns")
+	fmt.Printf("%#v\n", eventColumns)
 
 	// job columns
 	jobColumns, err := makeColumns(o.sdJobPath)
@@ -256,6 +260,32 @@ func (o *LabOptions) Run() error {
 			return nil
 		}
 
+		// fmt.Printf("%#v\n", sdBuild)
+		// sdPipeline := sd.Pipeline(sdJob.PipelineId)
+		eventIdf, _ := jsonpath.Read(sdBuild, "$.eventId")
+		if eventIdf == nil {
+			return nil
+		}
+
+		eventId := strconv.FormatFloat(eventIdf.(float64), 'f', -1, 64)
+		fmt.Println("eventId")
+		fmt.Println(eventId)
+		sdEvent, err := sd.Events(eventId)
+		// fmt.Printf("%v\n", event)
+		// pathedEi, err := jsonpath.Read(sdEvent, "$.causeMessage")
+		// fmt.Println("pathedEi")
+		// fmt.Println(pathedEi)
+
+		for i := range eventColumns {
+			fmt.Println(eventColumns[i].FieldSpec)
+
+			fieldInfo, err := jsonpath.Read(sdEvent, eventColumns[i].FieldSpec)
+			if err != nil {
+				fieldInfo = ""
+			}
+			many[eventColumns[i].Header] = append(many[eventColumns[i].Header], fieldInfo.(string))
+		}
+
 		for i := range buildColumns {
 			fmt.Println(buildColumns[i].FieldSpec)
 
@@ -273,7 +303,7 @@ func (o *LabOptions) Run() error {
 		jobId := strconv.FormatFloat(jobIdf.(float64), 'f', -1, 64)
 		fmt.Printf("%s\n", jobId)
 		sdJob, _ := sd.Job(jobId)
-		fmt.Printf("%#v", sdJob)
+		// fmt.Printf("%#v", sdJob)
 
 		for i := range jobColumns {
 			fmt.Println(jobColumns[i].FieldSpec)
