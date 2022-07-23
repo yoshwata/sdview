@@ -24,8 +24,6 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/cli-runtime/pkg/printers"
 	"k8s.io/cli-runtime/pkg/resource"
 
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -55,6 +53,8 @@ type LabOptions struct {
 	genericclioptions.IOStreams
 
 	output string
+
+	sdbuildPath string
 }
 
 // NewLabOptions provides an instance of LabOptions with default values
@@ -95,6 +95,7 @@ func NewCmdLab(streams genericclioptions.IOStreams) *cobra.Command {
 	var echoTimes = 1
 	cmd.Flags().IntVarP(&echoTimes, "times", "t", 1, "times to echo the input")
 	cmd.Flags().StringVarP(&o.output, "output", "o", "default", "hoge")
+	cmd.Flags().StringVarP(&o.sdbuildPath, "sdbuildPath", "b", "default", "hoge")
 
 	return cmd
 }
@@ -140,17 +141,16 @@ type Column struct {
 	FieldSpec string
 }
 
-// Run lists all available namespaces on a user's KUBECONFIG or updates the
-// current context based on a provided namespace.
-func (o *LabOptions) Run() error {
-	fmt.Println(o.output)
+func makeColumns(pathArg string) ([]Column, error) {
+	fmt.Println("faaaaaaa")
+	fmt.Println(pathArg)
 
 	templateValue := ""
 	templateFormat := ""
 	for format := range columnsFormats {
 		format = format + "="
-		if strings.HasPrefix(o.output, format) {
-			templateValue = o.output[len(format):]
+		if strings.HasPrefix(pathArg, format) {
+			templateValue = pathArg[len(format):]
 			templateFormat = format[:len(format)-1]
 			break
 		}
@@ -165,15 +165,59 @@ func (o *LabOptions) Run() error {
 	for ix := range parts {
 		colSpec := strings.SplitN(parts[ix], ":", 2)
 		if len(colSpec) != 2 {
-			return fmt.Errorf("unexpected custom-columns spec: %s, expected <header>:<json-path-expr>", parts[ix])
+			return nil, fmt.Errorf("unexpected custom-columns spec: %s, expected <header>:<json-path-expr>", parts[ix])
 		}
 
 		columns[ix] = Column{Header: colSpec[0], FieldSpec: colSpec[1]}
 	}
 
+	fmt.Println("colums")
 	fmt.Printf("%#v", columns)
 
-	r := resource.
+	return columns, nil
+}
+
+// Run lists all available namespaces on a user's KUBECONFIG or updates the
+// current context based on a provided namespace.
+func (o *LabOptions) Run() error {
+	// fmt.Println("faaaaaaa")
+	// fmt.Println(o.output)
+
+	// templateValue := ""
+	// templateFormat := ""
+	// for format := range columnsFormats {
+	// 	format = format + "="
+	// 	if strings.HasPrefix(o.output, format) {
+	// 		templateValue = o.output[len(format):]
+	// 		templateFormat = format[:len(format)-1]
+	// 		break
+	// 	}
+	// }
+
+	// fmt.Println(templateValue)
+	// fmt.Println(templateFormat)
+
+	// parts := strings.Split(templateValue, ",")
+	// columns := make([]Column, len(parts))
+
+	// for ix := range parts {
+	// 	colSpec := strings.SplitN(parts[ix], ":", 2)
+	// 	if len(colSpec) != 2 {
+	// 		return fmt.Errorf("unexpected custom-columns spec: %s, expected <header>:<json-path-expr>", parts[ix])
+	// 	}
+
+	// 	columns[ix] = Column{Header: colSpec[0], FieldSpec: colSpec[1]}
+	// }
+
+	columns, err := makeColumns(o.output)
+	if err != nil {
+		return fmt.Errorf("Failed to makeColumns")
+	}
+
+	fmt.Println("colums")
+	fmt.Printf("%#v", columns)
+
+	k8sRes := resource.
 		NewBuilder(o.configFlags).
 		Unstructured().
 		NamespaceParam(o.Namespace).
@@ -182,22 +226,9 @@ func (o *LabOptions) Run() error {
 		Latest().
 		Flatten().
 		Do()
-	if err := r.Err(); err != nil {
+	if err := k8sRes.Err(); err != nil {
 		return err
 	}
-
-	p := printers.NewTablePrinter(printers.PrintOptions{
-		NoHeaders:        false,
-		WithNamespace:    true,
-		WithKind:         true,
-		Wide:             true,
-		ShowLabels:       true,
-		Kind:             schema.GroupKind{},
-		ColumnLabels:     nil,
-		SortBy:           "",
-		AllowMissingKeys: false,
-	})
-	w := printers.GetNewTabWriter(o.Out)
 
 	many := map[string][]string{}
 
@@ -212,7 +243,7 @@ func (o *LabOptions) Run() error {
 
 	sd := screwdriver.New(usertoken, sdapi)
 
-	if err := r.Visit(func(info *resource.Info, e error) error {
+	if err := k8sRes.Visit(func(info *resource.Info, e error) error {
 		strPod, _ := json.Marshal(info.Object)
 		bytePod := []byte(strPod)
 
@@ -249,13 +280,8 @@ func (o *LabOptions) Run() error {
 		_ = sdBuild
 		many["buildClusterName"] = append(many["buildClusterName"], pathedBi.(string))
 
-		_ = p
-
 		return e
 	}); err != nil {
-		return err
-	}
-	if err := w.Flush(); err != nil {
 		return err
 	}
 
