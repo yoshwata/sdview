@@ -171,51 +171,23 @@ func makeColumns(pathArg string) ([]Column, error) {
 		columns[ix] = Column{Header: colSpec[0], FieldSpec: colSpec[1]}
 	}
 
-	fmt.Println("colums")
-	fmt.Printf("%#v", columns)
-
 	return columns, nil
 }
 
 // Run lists all available namespaces on a user's KUBECONFIG or updates the
 // current context based on a provided namespace.
 func (o *LabOptions) Run() error {
-	// fmt.Println("faaaaaaa")
-	// fmt.Println(o.output)
-
-	// templateValue := ""
-	// templateFormat := ""
-	// for format := range columnsFormats {
-	// 	format = format + "="
-	// 	if strings.HasPrefix(o.output, format) {
-	// 		templateValue = o.output[len(format):]
-	// 		templateFormat = format[:len(format)-1]
-	// 		break
-	// 	}
-	// }
-
-	// fmt.Println(templateValue)
-	// fmt.Println(templateFormat)
-
-	// parts := strings.Split(templateValue, ",")
-	// columns := make([]Column, len(parts))
-
-	// for ix := range parts {
-	// 	colSpec := strings.SplitN(parts[ix], ":", 2)
-	// 	if len(colSpec) != 2 {
-	// 		return fmt.Errorf("unexpected custom-columns spec: %s, expected <header>:<json-path-expr>", parts[ix])
-	// 	}
-
-	// 	columns[ix] = Column{Header: colSpec[0], FieldSpec: colSpec[1]}
-	// }
 
 	columns, err := makeColumns(o.output)
 	if err != nil {
 		return fmt.Errorf("Failed to makeColumns")
 	}
-
 	fmt.Println("colums")
-	fmt.Printf("%#v", columns)
+	fmt.Printf("%#v\n", columns)
+
+	buildColumns, err := makeColumns(o.sdbuildPath)
+	fmt.Println("buildColumns")
+	fmt.Printf("%#v\n", buildColumns)
 
 	k8sRes := resource.
 		NewBuilder(o.configFlags).
@@ -272,13 +244,23 @@ func (o *LabOptions) Run() error {
 		}
 		// sdJob := sd.Job(sdBuild.JobID)
 		// sdPipeline := sd.Pipeline(sdJob.PipelineId)
-		pathedBi, _ := jsonpath.Read(sdBuild, "$.buildClusterName")
-		if pathedBi == nil {
-			pathedBi = ""
+		// pathedBi, _ := jsonpath.Read(sdBuild, "$.buildClusterName")
+		// if pathedBi == nil {
+		// 	pathedBi = ""
+		// }
+
+		for i := range buildColumns {
+			fmt.Println(buildColumns[i].FieldSpec)
+
+			pathedBi, err := jsonpath.Read(sdBuild, buildColumns[i].FieldSpec)
+			if err != nil {
+				pathedBi = ""
+			}
+			many[buildColumns[i].Header] = append(many[buildColumns[i].Header], pathedBi.(string))
 		}
 
-		_ = sdBuild
-		many["buildClusterName"] = append(many["buildClusterName"], pathedBi.(string))
+		// _ = sdBuild
+		// many["buildClusterName"] = append(many["buildClusterName"], pathedBi.(string))
 
 		return e
 	}); err != nil {
