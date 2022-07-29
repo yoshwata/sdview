@@ -353,7 +353,16 @@ func (o *LabOptions) Run() error {
 			if err != nil {
 				pathedPi = ""
 			}
-			many[pipelineColumns[i].Header] = append(many[pipelineColumns[i].Header], pathedPi.(string))
+
+			var hoge interface{}
+			switch pathedPi := pathedPi.(type) {
+			case float64:
+				hoge = strconv.FormatFloat(pathedPi, 'f', -1, 64)
+			case string:
+				hoge = pathedPi
+			}
+			// many[pipelineColumns[i].Header] = append(many[pipelineColumns[i].Header], pathedPi.(string))
+			many[pipelineColumns[i].Header] = append(many[pipelineColumns[i].Header], hoge.(string))
 		}
 
 		return e
