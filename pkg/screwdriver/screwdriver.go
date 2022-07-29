@@ -8,7 +8,6 @@ import (
 	"net/url"
 	"os"
 	"path"
-	"strconv"
 
 	"github.com/sirupsen/logrus"
 )
@@ -192,20 +191,25 @@ func (sd *SD) Events(eventId string) (interface{}, error) {
 	return response, nil
 }
 
-func (sd *SD) Pipeline(pipelineId int) *Pipeline {
-	apiUrl := sd.makeURL(pipelinesEndpoint)
-	apiUrl.Path = path.Join(apiUrl.Path, strconv.Itoa(pipelineId))
+func (sd *SD) Pipeline(pipelineId string) interface{} {
+	apiUrl := sd.makeURL("pipelines")
+	apiUrl.Path = path.Join(apiUrl.Path, pipelineId)
 	res, err := sd.request(http.MethodGet, apiUrl.String(), nil, true)
 	if err != nil {
 		logrus.Error(err)
 	}
 
 	defer res.Body.Close()
-	pipeline := new(Pipeline)
-	err = json.NewDecoder(res.Body).Decode(pipeline)
-	if err != nil {
-		logrus.Error(err)
-	}
 
-	return pipeline
+	body, _ := io.ReadAll(res.Body)
+	var response interface{}
+
+	json.Unmarshal(body, &response)
+	// pipeline := new(Pipeline)
+	// err = json.NewDecoder(res.Body).Decode(pipeline)
+	// if err != nil {
+	// 	logrus.Error(err)
+	// }
+
+	return response
 }

@@ -60,6 +60,8 @@ type LabOptions struct {
 	sdEventPath string
 
 	sdJobPath string
+
+	sdPipelinePath string
 }
 
 // NewLabOptions provides an instance of LabOptions with default values
@@ -103,6 +105,7 @@ func NewCmdLab(streams genericclioptions.IOStreams) *cobra.Command {
 	cmd.Flags().StringVarP(&o.sdBuildPath, "sdbuildPath", "b", "default", "hoge")
 	cmd.Flags().StringVarP(&o.sdJobPath, "sdJobPath", "j", "default", "hoge")
 	cmd.Flags().StringVarP(&o.sdEventPath, "sdEventPath", "e", "default", "hoge")
+	cmd.Flags().StringVarP(&o.sdPipelinePath, "sdPipelinePath", "p", "default", "hoge")
 
 	return cmd
 }
@@ -192,6 +195,7 @@ func (o *LabOptions) Run() error {
 	fmt.Println("colums")
 	fmt.Printf("%#v\n", columns)
 
+	// build columns
 	buildColumns, err := makeColumns(o.sdBuildPath)
 	fmt.Println("buildColumns")
 	fmt.Printf("%#v\n", buildColumns)
@@ -205,6 +209,11 @@ func (o *LabOptions) Run() error {
 	jobColumns, err := makeColumns(o.sdJobPath)
 	fmt.Println("jobColumns")
 	fmt.Printf("%#v\n", jobColumns)
+
+	// pipeline columns
+	pipelineColumns, err := makeColumns(o.sdPipelinePath)
+	fmt.Println("pipelineColumns")
+	fmt.Printf("%#v\n", pipelineColumns)
 
 	k8sRes := resource.
 		NewBuilder(o.configFlags).
@@ -232,7 +241,18 @@ func (o *LabOptions) Run() error {
 
 	sd := screwdriver.New(usertoken, sdapi)
 
+	buildLimit := 10
+	buildCount := 0
+
 	if err := k8sRes.Visit(func(info *resource.Info, e error) error {
+
+		if buildCount >= buildLimit {
+			fmt.Println("skip")
+			return nil
+		}
+
+		buildCount += 1
+
 		strPod, _ := json.Marshal(info.Object)
 		bytePod := []byte(strPod)
 
@@ -315,14 +335,26 @@ func (o *LabOptions) Run() error {
 			many[jobColumns[i].Header] = append(many[jobColumns[i].Header], pathedJi.(string))
 		}
 
-		// sdPipeline := sd.Pipeline(sdJob.PipelineId)
-		// pathedBi, _ := jsonpath.Read(sdBuild, "$.buildClusterName")
-		// if pathedBi == nil {
-		// 	pathedBi = ""
-		// }
+		pipelineIdf, err := jsonpath.Read(sdJob, "$.pipelineId")
+		if err != nil {
+			return nil
+		}
+		pipelineId := strconv.FormatFloat(pipelineIdf.(float64), 'f', -1, 64)
+		fmt.Println("pipelineId")
+		fmt.Printf("%s\n", pipelineId)
+		// sdJob, _ := sd.Job(jobId)
+		sdPipeline := sd.Pipeline(pipelineId)
+		fmt.Printf("%v", sdPipeline)
 
-		// _ = sdBuild
-		// many["buildClusterName"] = append(many["buildClusterName"], pathedBi.(string))
+		for i := range pipelineColumns {
+			fmt.Println(pipelineColumns[i].FieldSpec)
+
+			pathedPi, err := jsonpath.Read(sdPipeline, pipelineColumns[i].FieldSpec)
+			if err != nil {
+				pathedPi = ""
+			}
+			many[pipelineColumns[i].Header] = append(many[pipelineColumns[i].Header], pathedPi.(string))
+		}
 
 		return e
 	}); err != nil {
