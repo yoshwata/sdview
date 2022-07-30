@@ -22,26 +22,6 @@ type SD struct {
 	client     *http.Client
 }
 
-// type Job struct {
-// 	Name       string `json:"name"`
-// 	PipelineId int    `json:"pipelineId"`
-// }
-
-// type Build struct {
-// 	JobID     int    `json:"jobId"`
-// 	Container string `json:"container"`
-// }
-
-// type Pipeline struct {
-// 	Name    string `json:"name"`
-// 	ScmRepo struct {
-// 		Name    string `json:"name"`
-// 		Branch  string `json:"branch"`
-// 		URL     string `json:"url"`
-// 		RootDir string `json:"rootDir"`
-// 	} `json:"scmRepo"`
-// }
-
 type tokenResponse struct {
 	JWT string `json:"token"`
 }
