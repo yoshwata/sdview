@@ -13,11 +13,7 @@ import (
 )
 
 const (
-	apiVersion        = "v4"
-	authEndpoint      = "auth/token"
-	buildsEndpoint    = "builds"
-	jobsEndpoint      = "jobs"
-	pipelinesEndpoint = "pipelines"
+	apiVersion = "v4"
 )
 
 type SD struct {
@@ -26,25 +22,25 @@ type SD struct {
 	client     *http.Client
 }
 
-type Job struct {
-	Name       string `json:"name"`
-	PipelineId int    `json:"pipelineId"`
-}
+// type Job struct {
+// 	Name       string `json:"name"`
+// 	PipelineId int    `json:"pipelineId"`
+// }
 
-type Build struct {
-	JobID     int    `json:"jobId"`
-	Container string `json:"container"`
-}
+// type Build struct {
+// 	JobID     int    `json:"jobId"`
+// 	Container string `json:"container"`
+// }
 
-type Pipeline struct {
-	Name    string `json:"name"`
-	ScmRepo struct {
-		Name    string `json:"name"`
-		Branch  string `json:"branch"`
-		URL     string `json:"url"`
-		RootDir string `json:"rootDir"`
-	} `json:"scmRepo"`
-}
+// type Pipeline struct {
+// 	Name    string `json:"name"`
+// 	ScmRepo struct {
+// 		Name    string `json:"name"`
+// 		Branch  string `json:"branch"`
+// 		URL     string `json:"url"`
+// 		RootDir string `json:"rootDir"`
+// 	} `json:"scmRepo"`
+// }
 
 type tokenResponse struct {
 	JWT string `json:"token"`
@@ -78,7 +74,7 @@ func (sd *SD) request(method, url string, body io.Reader, isRequestAuth bool) (*
 }
 
 func (sd *SD) jwt(token string) string {
-	apiUrl := sd.makeURL(authEndpoint)
+	apiUrl := sd.makeURL("auth/token")
 	q := apiUrl.Query()
 	q.Set("api_token", token)
 	apiUrl.RawQuery = q.Encode()
@@ -99,43 +95,21 @@ func (sd *SD) jwt(token string) string {
 	return tr.JWT
 }
 
-// func (sd *SD) Build(id string) *Build {
-func (sd *SD) Build(id string) (interface{}, error) {
-	apiUrl := sd.makeURL(buildsEndpoint)
+func (sd *SD) Build(id string) interface{} {
+	apiUrl := sd.makeURL("builds")
 	apiUrl.Path = path.Join(apiUrl.Path, id)
 	res, err := sd.request(http.MethodGet, apiUrl.String(), nil, true)
 	if err != nil {
 		logrus.Error(err)
-		// os.Exit(1)
-		return nil, err
+		return nil
 	}
 	defer res.Body.Close()
 
 	body, _ := io.ReadAll(res.Body)
 	var response interface{}
-	// strBody, _ := json.Marshal(res.Body)
-	// byteBody := []byte(strBody)
-
-	// var unMarshaledBody interface{}
-	// json.Unmarshal(byteBody, &unMarshaledBody)
 	json.Unmarshal(body, &response)
 
-	fmt.Println("=================")
-	// fmt.Printf("%#v\n", response)
-
-	// pathedBi, _ := jsonpath.Read(response, "$.buildClusterName")
-	// fmt.Printf("%s\n", pathedBi)
-	// _ = pathedPod
-
-	return response, nil
-	// build := new(Build)
-	// err = json.NewDecoder(res.Body).Decode(build)
-	// if err != nil {
-	// 	logrus.Error(err)
-	// 	os.Exit(1)
-	// }
-
-	// return build
+	return response
 }
 
 func (sd *SD) makeURL(endpoint string) *url.URL {
@@ -149,8 +123,8 @@ func (sd *SD) makeURL(endpoint string) *url.URL {
 	return u
 }
 
-func (sd *SD) Job(jobId string) (interface{}, error) {
-	apiUrl := sd.makeURL(jobsEndpoint)
+func (sd *SD) Job(jobId string) interface{} {
+	apiUrl := sd.makeURL("jobs")
 	apiUrl.Path = path.Join(apiUrl.Path, jobId)
 	res, err := sd.request(http.MethodGet, apiUrl.String(), nil, true)
 	if err != nil {
@@ -164,16 +138,10 @@ func (sd *SD) Job(jobId string) (interface{}, error) {
 
 	json.Unmarshal(body, &response)
 
-	// job := new(Job)
-	// err = json.NewDecoder(res.Body).Decode(job)
-	// if err != nil {
-	// 	logrus.Error(err)
-	// }
-
-	return response, nil
+	return response
 }
 
-func (sd *SD) Events(eventId string) (interface{}, error) {
+func (sd *SD) Events(eventId string) interface{} {
 	apiUrl := sd.makeURL("events")
 	apiUrl.Path = path.Join(apiUrl.Path, eventId)
 	res, err := sd.request(http.MethodGet, apiUrl.String(), nil, true)
@@ -188,7 +156,7 @@ func (sd *SD) Events(eventId string) (interface{}, error) {
 
 	json.Unmarshal(body, &response)
 
-	return response, nil
+	return response
 }
 
 func (sd *SD) Pipeline(pipelineId string) interface{} {
@@ -205,11 +173,6 @@ func (sd *SD) Pipeline(pipelineId string) interface{} {
 	var response interface{}
 
 	json.Unmarshal(body, &response)
-	// pipeline := new(Pipeline)
-	// err = json.NewDecoder(res.Body).Decode(pipeline)
-	// if err != nil {
-	// 	logrus.Error(err)
-	// }
 
 	return response
 }

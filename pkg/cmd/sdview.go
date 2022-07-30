@@ -267,10 +267,7 @@ func (o *LabOptions) Run() error {
 		}
 
 		many["buildId"] = append(many["buildId"], buildId.(string))
-		sdBuild, err := sd.Build(buildId.(string))
-		if err != nil {
-			return nil
-		}
+		sdBuild := sd.Build(buildId.(string))
 
 		// event
 		eventIdf, _ := jsonpath.Read(sdBuild, "$.eventId")
@@ -279,7 +276,7 @@ func (o *LabOptions) Run() error {
 		}
 
 		eventId := strconv.FormatFloat(eventIdf.(float64), 'f', -1, 64)
-		sdEvent, err := sd.Events(eventId)
+		sdEvent := sd.Events(eventId)
 
 		many = appendSDInfo(sdEvent, many, eventColumns)
 
@@ -292,7 +289,7 @@ func (o *LabOptions) Run() error {
 			return nil
 		}
 		jobId := strconv.FormatFloat(jobIdf.(float64), 'f', -1, 64)
-		sdJob, _ := sd.Job(jobId)
+		sdJob := sd.Job(jobId)
 
 		many = appendSDInfo(sdJob, many, jobColumns)
 
