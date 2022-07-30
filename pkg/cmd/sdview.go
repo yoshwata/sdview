@@ -62,6 +62,8 @@ type LabOptions struct {
 	sdJobPath string
 
 	sdPipelinePath string
+
+	maxLines int
 }
 
 // NewLabOptions provides an instance of LabOptions with default values
@@ -106,6 +108,7 @@ func NewCmdLab(streams genericclioptions.IOStreams) *cobra.Command {
 	cmd.Flags().StringVarP(&o.sdJobPath, "sdJobPath", "j", "default", "hoge")
 	cmd.Flags().StringVarP(&o.sdEventPath, "sdEventPath", "e", "default", "hoge")
 	cmd.Flags().StringVarP(&o.sdPipelinePath, "sdPipelinePath", "p", "default", "hoge")
+	cmd.Flags().IntVarP(&o.maxLines, "maxLines", "l", 10, "hoge")
 
 	return cmd
 }
@@ -239,12 +242,11 @@ func (o *LabOptions) Run() error {
 
 	sd := screwdriver.New(usertoken, sdapi)
 
-	buildLimit := 10
 	buildCount := 0
 
 	if err := k8sRes.Visit(func(info *resource.Info, e error) error {
 
-		if buildCount >= buildLimit {
+		if buildCount >= o.maxLines {
 			fmt.Println("skip")
 			return nil
 		}
