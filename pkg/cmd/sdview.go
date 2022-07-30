@@ -264,57 +264,33 @@ func (o *LabOptions) Run() error {
 			return nil
 		}
 
-		var pathedPod interface{}
-		for i := range columns {
-			fmt.Println(columns[i].FieldSpec)
-			pathedPod, _ = jsonpath.Read(unMarshaledPod, columns[i].FieldSpec)
-			_ = pathedPod
-			many[columns[i].Header] = append(many[columns[i].Header], pathedPod.(string))
-		}
+		// var pathedPod interface{}
+		// for i := range columns {
+		// 	fmt.Println(columns[i].FieldSpec)
+		// 	pathedPod, _ = jsonpath.Read(unMarshaledPod, columns[i].FieldSpec)
+		// 	_ = pathedPod
+		// 	many[columns[i].Header] = append(many[columns[i].Header], pathedPod.(string))
+		// }
 
 		many["buildId"] = append(many["buildId"], buildId.(string))
-		// repository := "myorg/myrepo"
-
 		sdBuild, err := sd.Build(buildId.(string))
 		if err != nil {
 			return nil
 		}
 
-		// fmt.Printf("%#v\n", sdBuild)
-		// sdPipeline := sd.Pipeline(sdJob.PipelineId)
+		// event
 		eventIdf, _ := jsonpath.Read(sdBuild, "$.eventId")
 		if eventIdf == nil {
 			return nil
 		}
 
 		eventId := strconv.FormatFloat(eventIdf.(float64), 'f', -1, 64)
-		fmt.Println("eventId")
-		fmt.Println(eventId)
 		sdEvent, err := sd.Events(eventId)
-		// fmt.Printf("%v\n", event)
-		// pathedEi, err := jsonpath.Read(sdEvent, "$.causeMessage")
-		// fmt.Println("pathedEi")
-		// fmt.Println(pathedEi)
 
-		for i := range eventColumns {
-			fmt.Println(eventColumns[i].FieldSpec)
+		many = appendSDInfo(sdEvent, many, eventColumns)
 
-			fieldInfo, err := jsonpath.Read(sdEvent, eventColumns[i].FieldSpec)
-			if err != nil {
-				fieldInfo = ""
-			}
-			many[eventColumns[i].Header] = append(many[eventColumns[i].Header], fieldInfo.(string))
-		}
-
-		for i := range buildColumns {
-			fmt.Println(buildColumns[i].FieldSpec)
-
-			pathedBi, err := jsonpath.Read(sdBuild, buildColumns[i].FieldSpec)
-			if err != nil {
-				pathedBi = ""
-			}
-			many[buildColumns[i].Header] = append(many[buildColumns[i].Header], pathedBi.(string))
-		}
+		// build
+		many = appendSDInfo(sdBuild, many, buildColumns)
 
 		// job
 		jobIdf, err := jsonpath.Read(sdBuild, "$.jobId")
