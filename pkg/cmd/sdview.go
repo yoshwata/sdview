@@ -316,54 +316,24 @@ func (o *LabOptions) Run() error {
 			many[buildColumns[i].Header] = append(many[buildColumns[i].Header], pathedBi.(string))
 		}
 
+		// job
 		jobIdf, err := jsonpath.Read(sdBuild, "$.jobId")
 		if err != nil {
 			return nil
 		}
 		jobId := strconv.FormatFloat(jobIdf.(float64), 'f', -1, 64)
-		fmt.Printf("%s\n", jobId)
 		sdJob, _ := sd.Job(jobId)
-		// fmt.Printf("%#v", sdJob)
 
-		for i := range jobColumns {
-			fmt.Println(jobColumns[i].FieldSpec)
+		many = appendSDInfo(sdJob, many, jobColumns)
 
-			pathedJi, err := jsonpath.Read(sdJob, jobColumns[i].FieldSpec)
-			if err != nil {
-				pathedJi = ""
-			}
-			many[jobColumns[i].Header] = append(many[jobColumns[i].Header], pathedJi.(string))
-		}
-
+		// pipeline
 		pipelineIdf, err := jsonpath.Read(sdJob, "$.pipelineId")
 		if err != nil {
 			return nil
 		}
 		pipelineId := strconv.FormatFloat(pipelineIdf.(float64), 'f', -1, 64)
-		fmt.Println("pipelineId")
-		fmt.Printf("%s\n", pipelineId)
-		// sdJob, _ := sd.Job(jobId)
 		sdPipeline := sd.Pipeline(pipelineId)
-		fmt.Printf("%v", sdPipeline)
-
-		for i := range pipelineColumns {
-			fmt.Println(pipelineColumns[i].FieldSpec)
-
-			pathedPi, err := jsonpath.Read(sdPipeline, pipelineColumns[i].FieldSpec)
-			if err != nil {
-				pathedPi = ""
-			}
-
-			var hoge interface{}
-			switch pathedPi := pathedPi.(type) {
-			case float64:
-				hoge = strconv.FormatFloat(pathedPi, 'f', -1, 64)
-			case string:
-				hoge = pathedPi
-			}
-			// many[pipelineColumns[i].Header] = append(many[pipelineColumns[i].Header], pathedPi.(string))
-			many[pipelineColumns[i].Header] = append(many[pipelineColumns[i].Header], hoge.(string))
-		}
+		many = appendSDInfo(sdPipeline, many, pipelineColumns)
 
 		return e
 	}); err != nil {
@@ -374,4 +344,30 @@ func (o *LabOptions) Run() error {
 	printer.Print(many)
 
 	return nil
+}
+
+func appendSDInfo(
+	targetSource interface{},
+	targetDest map[string][]string,
+	columns []Column) map[string][]string {
+
+	for i := range columns {
+		fmt.Println(columns[i].FieldSpec)
+
+		pathedPi, err := jsonpath.Read(targetSource, columns[i].FieldSpec)
+		if err != nil {
+			pathedPi = ""
+		}
+
+		var hoge interface{}
+		switch pathedPi := pathedPi.(type) {
+		case float64:
+			hoge = strconv.FormatFloat(pathedPi, 'f', -1, 64)
+		case string:
+			hoge = pathedPi
+		}
+		targetDest[columns[i].Header] = append(targetDest[columns[i].Header], hoge.(string))
+	}
+
+	return targetDest
 }
