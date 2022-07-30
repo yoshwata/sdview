@@ -103,7 +103,7 @@ func NewCmdSdView(streams genericclioptions.IOStreams) *cobra.Command {
 
 	var echoTimes = 1
 	cmd.Flags().IntVarP(&echoTimes, "times", "t", 1, "times to echo the input")
-	cmd.Flags().StringVarP(&o.output, "output", "o", "default", "hoge")
+	cmd.Flags().StringVarP(&o.output, "output", "o", "", "hoge")
 	cmd.Flags().StringVarP(&o.sdBuildPath, "sdbuildPath", "b", "default", "hoge")
 	cmd.Flags().StringVarP(&o.sdJobPath, "sdJobPath", "j", "default", "hoge")
 	cmd.Flags().StringVarP(&o.sdEventPath, "sdEventPath", "e", "default", "hoge")
@@ -191,12 +191,19 @@ func makeColumns(pathArg string) ([]Column, error) {
 // current context based on a provided namespace.
 func (o *LabOptions) Run() error {
 
-	columns, err := makeColumns(o.output)
-	if err != nil {
-		return fmt.Errorf("Failed to makeColumns")
+	var err error
+	var kubeColumns []Column
+	if o.output != "" {
+		fmt.Println("o.output")
+		fmt.Println(o.output)
+		// kube columns
+		kubeColumns, err = makeColumns(o.output)
+		if err != nil {
+			return fmt.Errorf("Failed to makeColumns: %s", err)
+		}
+		fmt.Println("kubeColumns")
+		fmt.Printf("%#v\n", kubeColumns)
 	}
-	fmt.Println("colums")
-	fmt.Printf("%#v\n", columns)
 
 	// build columns
 	buildColumns, err := makeColumns(o.sdBuildPath)
@@ -265,6 +272,8 @@ func (o *LabOptions) Run() error {
 		if buildId == nil {
 			return nil
 		}
+		// kube
+		many = appendSDInfo(unMarshaledPod, many, kubeColumns)
 
 		many["buildId"] = append(many["buildId"], buildId.(string))
 		sdBuild := sd.Build(buildId.(string))
