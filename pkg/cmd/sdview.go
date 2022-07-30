@@ -67,7 +67,7 @@ type LabOptions struct {
 }
 
 // NewLabOptions provides an instance of LabOptions with default values
-func NewLabOptions(streams genericclioptions.IOStreams) *LabOptions {
+func NewSdViewOptions(streams genericclioptions.IOStreams) *LabOptions {
 	return &LabOptions{
 		configFlags: genericclioptions.NewConfigFlags(true),
 
@@ -76,8 +76,8 @@ func NewLabOptions(streams genericclioptions.IOStreams) *LabOptions {
 }
 
 // NewCmdLab provides a cobra command wrapping LabOptions
-func NewCmdLab(streams genericclioptions.IOStreams) *cobra.Command {
-	o := NewLabOptions(streams)
+func NewCmdSdView(streams genericclioptions.IOStreams) *cobra.Command {
+	o := NewSdViewOptions(streams)
 
 	cmd := &cobra.Command{
 		Use:          "kubectl lab [resources] [flags]",

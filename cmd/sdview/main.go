@@ -14,7 +14,7 @@ var (
 	cfgFile     string
 	userLicense string
 
-	rootCmd = cmd.NewCmdLab(genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr})
+	rootCmd = cmd.NewCmdSdView(genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr})
 )
 
 func Execute() error {
@@ -25,7 +25,7 @@ func main() {
 	flags := pflag.NewFlagSet("kubectl-ns", pflag.ExitOnError)
 	pflag.CommandLine = flags
 
-	rootCmd := cmd.NewCmdLab(genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr})
+	rootCmd := cmd.NewCmdSdView(genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr})
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
