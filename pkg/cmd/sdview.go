@@ -18,7 +18,6 @@ package cmd
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -122,21 +121,22 @@ func (o *LabOptions) Complete(cmd *cobra.Command, args []string) (err error) {
 
 // Validate ensures that all required arguments and flag values are provided
 func (o *LabOptions) Validate() error {
-	cases := []struct {
-		want bool
-		msg  string
-	}{
-		{
-			want: len(o.args) > 0,
-			msg:  "must give args",
-		},
-	}
+	// nothing to do
+	// cases := []struct {
+	// 	want bool
+	// 	msg  string
+	// }{
+	// 	{
+	// 		want: len(o.args) > 0,
+	// 		msg:  "must give args",
+	// 	},
+	// }
 
-	for _, c := range cases {
-		if !c.want {
-			return errors.New(c.msg)
-		}
-	}
+	// for _, c := range cases {
+	// 	if !c.want {
+	// 		return errors.New(c.msg)
+	// 	}
+	// }
 
 	return nil
 }
@@ -224,13 +224,14 @@ func (o *LabOptions) Run() error {
 	pipelineColumns, err := makeColumns(o.sdPipelinePath)
 	fmt.Println("pipelineColumns")
 	fmt.Printf("%#v\n", pipelineColumns)
+	fmt.Printf("%s\n", o.args)
 
 	k8sRes := resource.
 		NewBuilder(o.configFlags).
 		Unstructured().
 		NamespaceParam(o.Namespace).
 		DefaultNamespace().
-		ResourceTypeOrNameArgs(true, o.args...).
+		ResourceTypeOrNameArgs(true, "pods").
 		Latest().
 		Flatten().
 		Do()
@@ -261,7 +262,7 @@ func (o *LabOptions) Run() error {
 		buildCount += 1
 
 		// Create table
-		// Get build to show other elements like events, jobs, piepelines
+		// Get buildId to show other elements like events, jobs, piepelines
 		strPod, _ := json.Marshal(info.Object)
 		bytePod := []byte(strPod)
 
