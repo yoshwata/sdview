@@ -236,8 +236,6 @@ func (o *LabOptions) Run() error {
 	viper.ReadInConfig()
 	usertoken := viper.Get("usertoken").(string)
 	sdapi := viper.Get("sdapi").(string)
-	fmt.Println(usertoken)
-	fmt.Println(sdapi)
 
 	sd := screwdriver.New(usertoken, sdapi)
 
@@ -253,6 +251,8 @@ func (o *LabOptions) Run() error {
 
 		buildCount += 1
 
+		// Create table
+		// Get build to show other elements like events, jobs, piepelines
 		strPod, _ := json.Marshal(info.Object)
 		bytePod := []byte(strPod)
 
@@ -263,14 +263,6 @@ func (o *LabOptions) Run() error {
 		if buildId == nil {
 			return nil
 		}
-
-		// var pathedPod interface{}
-		// for i := range columns {
-		// 	fmt.Println(columns[i].FieldSpec)
-		// 	pathedPod, _ = jsonpath.Read(unMarshaledPod, columns[i].FieldSpec)
-		// 	_ = pathedPod
-		// 	many[columns[i].Header] = append(many[columns[i].Header], pathedPod.(string))
-		// }
 
 		many["buildId"] = append(many["buildId"], buildId.(string))
 		sdBuild, err := sd.Build(buildId.(string))
