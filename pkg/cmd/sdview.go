@@ -106,7 +106,7 @@ func NewCmdSdView(streams genericclioptions.IOStreams) *cobra.Command {
 	cmd.Flags().StringVarP(&o.sdJobPath, "sdJobPath", "j", "default", "hoge")
 	cmd.Flags().StringVarP(&o.sdEventPath, "sdEventPath", "e", "default", "hoge")
 	cmd.Flags().StringVarP(&o.sdPipelinePath, "sdPipelinePath", "p", "default", "hoge")
-	cmd.Flags().IntVarP(&o.maxLines, "maxLines", "l", 10, "hoge")
+	cmd.Flags().IntVarP(&o.maxLines, "maxLines", "l", 0, "hoge")
 
 	return cmd
 }
@@ -229,15 +229,15 @@ func (o *LabOptions) Run() error {
 
 	sd := screwdriver.New(usertoken, sdapi)
 
-	buildCount := 0
+	lineCount := 0
 
 	if err := k8sRes.Visit(func(info *resource.Info, e error) error {
 
-		if buildCount >= o.maxLines {
+		if o.maxLines != 0 && lineCount >= o.maxLines {
 			return nil
 		}
 
-		buildCount += 1
+		lineCount += 1
 
 		// Create table
 		// Get buildId to show other elements like events, jobs, piepelines
