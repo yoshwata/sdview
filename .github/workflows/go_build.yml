@@ -23,10 +23,11 @@ jobs:
         path: 'release.json'
         prop_path: 'version'
 
-    - name: Build gorkscrew binary
+    - name: Build sdview binary
       uses: wangyoucao577/go-release-action@master
       with:
         github_token: ${{ secrets.TOKEN }}
         goos: ${{ matrix.goos }}
         goarch: ${{ matrix.goarch }}
         ldflags: "-X 'main.version=${{ steps.sdview_version.outputs.prop }}'"
+        project_path: cmd/sdview
