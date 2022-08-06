@@ -9,11 +9,11 @@ $ go build -o sdview cmd/sdview/main.go
 
 ## Installation
 
-Get the binary from Releases and put it on your bin path
+Get the binary from Releases and put it on your bin path.
 
 ## Configuration
 
-Put a yaml file `sdview_config.yaml` on your $HOME
+Put a yaml file `sdview_config.yaml` on your $HOME or the dir `sdview` exists.
 
 example:
 ```yaml
