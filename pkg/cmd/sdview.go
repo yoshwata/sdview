@@ -78,8 +78,8 @@ func NewCmdSdView(streams genericclioptions.IOStreams) *cobra.Command {
 	o := NewSdViewOptions(streams)
 
 	cmd := &cobra.Command{
-		Use:          "kubectl lab [resources] [flags]",
-		Short:        "kubectl lab",
+		Use:          "sdview [flags]",
+		Short:        "sdview",
 		Example:      fmt.Sprintf(sdviewExample, "sdview"),
 		SilenceUsage: true,
 		RunE: func(c *cobra.Command, args []string) error {
@@ -99,14 +99,12 @@ func NewCmdSdView(streams genericclioptions.IOStreams) *cobra.Command {
 
 	o.configFlags.AddFlags(cmd.Flags())
 
-	var echoTimes = 1
-	cmd.Flags().IntVarP(&echoTimes, "times", "t", 1, "times to echo the input")
-	cmd.Flags().StringVarP(&o.output, "output", "o", "", "hoge")
-	cmd.Flags().StringVarP(&o.sdBuildPath, "sdbuildPath", "b", "default", "hoge")
-	cmd.Flags().StringVarP(&o.sdJobPath, "sdJobPath", "j", "default", "hoge")
-	cmd.Flags().StringVarP(&o.sdEventPath, "sdEventPath", "e", "default", "hoge")
-	cmd.Flags().StringVarP(&o.sdPipelinePath, "sdPipelinePath", "p", "default", "hoge")
-	cmd.Flags().IntVarP(&o.maxLines, "maxLines", "l", 0, "hoge")
+	cmd.Flags().StringVarP(&o.output, "output", "o", "", "Path of kubernetes pods response")
+	cmd.Flags().StringVarP(&o.sdBuildPath, "sdbuildPath", "b", "", "Path of sd's /builds response")
+	cmd.Flags().StringVarP(&o.sdJobPath, "sdJobPath", "j", "", "Path of sd's /jobs response")
+	cmd.Flags().StringVarP(&o.sdEventPath, "sdEventPath", "e", "", "Path of sd's /events response")
+	cmd.Flags().StringVarP(&o.sdPipelinePath, "sdPipelinePath", "p", "", "Path of sd's /pipelines response")
+	cmd.Flags().IntVarP(&o.maxLines, "maxLines", "l", 0, "Max lines of table.")
 
 	return cmd
 }
