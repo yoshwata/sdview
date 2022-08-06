@@ -9,7 +9,18 @@ $ go build -o sdview cmd/sdview/main.go
 
 ## Installation
 
-TBD
+Get the binary from Releases and put it on your bin path
+
+## Configuration
+
+Put a yaml file `sdview_config.yaml` on your $HOME
+
+example:
+```yaml
+usertoken: YOUR_SD_USER_TOKEN_HERE
+sdapi: https://your.screwdriver.api.co.jp
+```
+
 
 ## Usage
 
