@@ -36,9 +36,8 @@ import (
 )
 
 var (
-	labExample = `
-	%[1]s lab pods
-	%[1]s lab services
+	sdviewExample = `
+	%[1]s -o="custom-columns=NAME:$.metadata.name,IMAGE:$.spec.containers[0].image" -b="custom-columns=builcClusterName:$.buildClusterName" -j="custom-columns=jobname:$.name" -e="custom-columns=causeMessage:$.causeMessage" -p="custom-columns=REPO:$.scmRepo.name"
 `
 )
 
@@ -81,7 +80,7 @@ func NewCmdSdView(streams genericclioptions.IOStreams) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "kubectl lab [resources] [flags]",
 		Short:        "kubectl lab",
-		Example:      fmt.Sprintf(labExample, "kubectl"),
+		Example:      fmt.Sprintf(sdviewExample, "sdview"),
 		SilenceUsage: true,
 		RunE: func(c *cobra.Command, args []string) error {
 			if err := o.Complete(c, args); err != nil {
