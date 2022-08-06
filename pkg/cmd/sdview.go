@@ -218,9 +218,9 @@ func (o *LabOptions) Run() error {
 
 	many := map[string][]string{}
 
-	viper.SetConfigName("config")
+	viper.SetConfigName("sdview_config")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath(".")
+	viper.AddConfigPath("$HOME/")
 	viper.ReadInConfig()
 	usertoken := viper.Get("usertoken").(string)
 	sdapi := viper.Get("sdapi").(string)
