@@ -1,0 +1,32 @@
+name: go_build
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    name: build_to_release
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux]
+        goarch: [amd64]
+    steps:
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v3
+
+    - name: Read version from release.json
+      uses: notiz-dev/github-action-json-property@release
+      id: sdview_version
+      with:
+        path: 'release.json'
+        prop_path: 'version'
+
+    - name: Build gorkscrew binary
+      uses: wangyoucao577/go-release-action@master
+      with:
+        github_token: ${{ secrets.TOKEN }}
+        goos: ${{ matrix.goos }}
+        goarch: ${{ matrix.goarch }}
+        ldflags: "-X 'main.version=${{ steps.sdview_version.outputs.prop }}'"

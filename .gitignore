@@ -20,3 +20,6 @@ sdview
 
 # Go workspace file
 go.work
+
+# Others
+.DS_store
