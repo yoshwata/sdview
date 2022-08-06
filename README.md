@@ -15,7 +15,7 @@ TBD
 
 ```
 $ ./sdview -o="custom-columns=NAME:$.metadata.name,CPU:$.spec.containers[0].resources.limits.cpu" -b="custom-col
-umns=builcClusterName:$.buildClusterName" -j="custom-columns=jobname:$.name" -e="custom-columns=causeMessage:$.causeMessage" -p="custom-columns=REPO:$.scmRepo.name" -l=5 
+umns=builcClusterName:$.buildClusterName" -j="custom-columns=jobname:$.name" -e="custom-columns=causeMessage:$.causeMessage" -p="custom-columns=REPO:$.scmRepo.name" -l=5
   BUILDID (5)    CAUSEMESSAGE                              BUILCCLUSTERNAME   JOBNAME                REPO                           NAME             CPU
  -------------- ----------------------------------------- ------------------ ---------------------- ------------------------------ ---------------- -----
   84264161       Synchronized by pxxxxxx.git:txxxxxxxxxx   txxx-xxx-sdcd      PR-1309:pull-request   rxxxxx/rexxxxx                 84264161-vfudz   2
