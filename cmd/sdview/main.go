@@ -22,7 +22,7 @@ func Execute() error {
 }
 
 func main() {
-	flags := pflag.NewFlagSet("kubectl-ns", pflag.ExitOnError)
+	flags := pflag.NewFlagSet("kubectl-sdview", pflag.ExitOnError)
 	pflag.CommandLine = flags
 
 	rootCmd := cmd.NewCmdSdView(genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr})

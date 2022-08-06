@@ -155,22 +155,15 @@ type Column struct {
 }
 
 func makeColumns(pathArg string) ([]Column, error) {
-	fmt.Println("faaaaaaa")
-	fmt.Println(pathArg)
-
 	templateValue := ""
-	templateFormat := ""
 	for format := range columnsFormats {
 		format = format + "="
 		if strings.HasPrefix(pathArg, format) {
 			templateValue = pathArg[len(format):]
-			templateFormat = format[:len(format)-1]
+			// templateFormat = format[:len(format)-1]
 			break
 		}
 	}
-
-	fmt.Println(templateValue)
-	fmt.Println(templateFormat)
 
 	parts := strings.Split(templateValue, ",")
 	columns := make([]Column, len(parts))
@@ -194,37 +187,24 @@ func (o *LabOptions) Run() error {
 	var err error
 	var kubeColumns []Column
 	if o.output != "" {
-		fmt.Println("o.output")
-		fmt.Println(o.output)
 		// kube columns
 		kubeColumns, err = makeColumns(o.output)
 		if err != nil {
 			return fmt.Errorf("Failed to makeColumns: %s", err)
 		}
-		fmt.Println("kubeColumns")
-		fmt.Printf("%#v\n", kubeColumns)
 	}
 
 	// build columns
 	buildColumns, err := makeColumns(o.sdBuildPath)
-	fmt.Println("buildColumns")
-	fmt.Printf("%#v\n", buildColumns)
 
 	// event columns
 	eventColumns, err := makeColumns(o.sdEventPath)
-	fmt.Println("EventColumns")
-	fmt.Printf("%#v\n", eventColumns)
 
 	// job columns
 	jobColumns, err := makeColumns(o.sdJobPath)
-	fmt.Println("jobColumns")
-	fmt.Printf("%#v\n", jobColumns)
 
 	// pipeline columns
 	pipelineColumns, err := makeColumns(o.sdPipelinePath)
-	fmt.Println("pipelineColumns")
-	fmt.Printf("%#v\n", pipelineColumns)
-	fmt.Printf("%s\n", o.args)
 
 	k8sRes := resource.
 		NewBuilder(o.configFlags).
@@ -255,7 +235,6 @@ func (o *LabOptions) Run() error {
 	if err := k8sRes.Visit(func(info *resource.Info, e error) error {
 
 		if buildCount >= o.maxLines {
-			fmt.Println("skip")
 			return nil
 		}
 
@@ -329,8 +308,6 @@ func appendSDInfo(
 	columns []Column) map[string][]string {
 
 	for i := range columns {
-		fmt.Println(columns[i].FieldSpec)
-
 		pathedPi, err := jsonpath.Read(targetSource, columns[i].FieldSpec)
 		if err != nil {
 			pathedPi = ""

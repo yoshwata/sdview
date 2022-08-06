@@ -2,7 +2,6 @@ package screwdriver
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -31,8 +30,6 @@ func New(token, baseAPIURL string) *SD {
 	sd.baseAPIURL = baseAPIURL
 	sd.client = new(http.Client)
 	sd.JWT = sd.jwt(token)
-
-	fmt.Println(sd.JWT)
 
 	return sd
 }
